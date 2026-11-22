@@ -1,0 +1,223 @@
+import { Button, LineEdit } from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+    title: "Remora";
+    background: #0d1422;
+    width: 390px;
+    height: 780px;
+    in-out property <int> active-page: 0;
+    in-out property <int> touch-count: 0;
+
+    VerticalLayout {
+        padding: 16px;
+        spacing: 12px;
+
+        Rectangle {
+            height: 112px;
+            background: #15243b;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 16px;
+                spacing: 5px;
+                Text {
+                    text: "REMORA";
+                    color: #edf5ff;
+                    font-size: 30px;
+                    font-weight: 800;
+                }
+                Text {
+                    text: "Your Pi, at your fingertips";
+                    color: #afc2db;
+                    font-size: 16px;
+                }
+                Text {
+                    text: "UI prototype  •  Disconnected";
+                    color: #f7c874;
+                    font-size: 13px;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 6px;
+            Button { text: "Touch"; clicked => { root.active-page = 0; } }
+            Button { text: "Keyboard"; clicked => { root.active-page = 1; } }
+            Button { text: "Apps"; clicked => { root.active-page = 2; } }
+            Button { text: "Setup"; clicked => { root.active-page = 3; } }
+        }
+
+        if root.active-page == 0: Rectangle {
+            vertical-stretch: 1;
+            background: #172640;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 10px;
+
+                Text {
+                    text: "TOUCHPAD";
+                    color: #e0ebfa;
+                    font-size: 18px;
+                    font-weight: 700;
+                }
+                Rectangle {
+                    vertical-stretch: 1;
+                    background: #0c1729;
+                    border-radius: 14px;
+                    Text {
+                        width: parent.width;
+                        height: parent.height;
+                        text: "Tap here to test touch input";
+                        color: #9db6d3;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea {
+                        width: parent.width;
+                        height: parent.height;
+                        clicked => {
+                            root.touch-count += 1;
+                        }
+                    }
+                }
+                Text {
+                    text: "Local taps detected: " + root.touch-count;
+                    color: #b8c9dd;
+                    font-size: 14px;
+                }
+                Text {
+                    text: "Cursor movement and clicks will be enabled when the Pi protocol is integrated.";
+                    color: #9aafca;
+                    font-size: 13px;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        if root.active-page == 1: Rectangle {
+            vertical-stretch: 1;
+            background: #172640;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 16px;
+                spacing: 14px;
+                Text {
+                    text: "KEYBOARD";
+                    color: #e0ebfa;
+                    font-size: 18px;
+                    font-weight: 700;
+                }
+                Text {
+                    text: "Try opening the Android keyboard below. Text is local and is not sent to the Pi yet.";
+                    wrap: word-wrap;
+                    color: #afc2db;
+                    font-size: 14px;
+                }
+                LineEdit {
+                    text: "";
+                    placeholder-text: "Tap to type...";
+                }
+                Rectangle { vertical-stretch: 1; background: transparent; }
+            }
+        }
+
+        if root.active-page == 2: Rectangle {
+            vertical-stretch: 1;
+            background: #172640;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 16px;
+                spacing: 14px;
+                Text {
+                    text: "APPLICATIONS";
+                    color: #e0ebfa;
+                    font-size: 18px;
+                    font-weight: 700;
+                }
+                Text {
+                    text: "Planned Pi shortcuts";
+                    color: #afc2db;
+                    font-size: 14px;
+                }
+                Rectangle {
+                    height: 64px;
+                    background: #233752;
+                    border-radius: 10px;
+                    Text {
+                        text: "Moonlight  •  planned";
+                        color: #e5efff;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                        width: parent.width;
+                        height: parent.height;
+                    }
+                }
+                Rectangle {
+                    height: 64px;
+                    background: #233752;
+                    border-radius: 10px;
+                    Text {
+                        text: "Desktop applications  •  planned";
+                        color: #e5efff;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                        width: parent.width;
+                        height: parent.height;
+                    }
+                }
+                Rectangle { vertical-stretch: 1; background: transparent; }
+            }
+        }
+
+        if root.active-page == 3: Rectangle {
+            vertical-stretch: 1;
+            background: #172640;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 16px;
+                spacing: 12px;
+                Text {
+                    text: "CONNECTION SETUP";
+                    color: #e0ebfa;
+                    font-size: 18px;
+                    font-weight: 700;
+                }
+                Text {
+                    text: "Preferred Pi hostname";
+                    color: #afc2db;
+                    font-size: 14px;
+                }
+                LineEdit {
+                    text: "streamlink.local";
+                }
+                Text {
+                    text: "This field is a UI preview; pairing and saving settings are not wired up yet.";
+                    color: #9aafca;
+                    wrap: word-wrap;
+                    font-size: 13px;
+                }
+                Text {
+                    text: "Future: QR pairing, secure reconnect, service discovery and connection health.";
+                    color: #9aafca;
+                    wrap: word-wrap;
+                    font-size: 13px;
+                }
+                Rectangle { vertical-stretch: 1; background: transparent; }
+            }
+        }
+
+        Rectangle {
+            height: 34px;
+            background: #0d1422;
+            Text {
+                text: "Remora 0.1.0-dev  •  Android ARM64";
+                color: #738ba9;
+                font-size: 12px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                width: parent.width;
+                height: parent.height;
+            }
+        }
+    }
+}
