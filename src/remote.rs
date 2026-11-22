@@ -271,14 +271,17 @@ async fn network_worker(
                 // Handle configuration changes even while offline.
                 tokio::select! {
                     cmd = rx.recv() => {
-                        if matches!(cmd, Some(Command::Forget)) {
-                            session=None; forget_session(storage.as_deref());
-                        } else if let Some(Command::Pair {host,code})=cmd {
-                            match pair(&client,host,code).await {
-                                Ok(new) => { if save_session(storage.as_deref(),&new).is_ok() {session=Some(new);delay=1;} },
-                                Err(e) => update(&weak,"Pairing failed",&e,false)
+                        match cmd {
+                            Some(Command::Forget) => {session=None; forget_session(storage.as_deref());}
+                            Some(Command::Pair {host,code}) => {
+                                match pair(&client,host,code).await {
+                                    Ok(new) => {if save_session(storage.as_deref(),&new).is_ok() {session=Some(new);delay=1;}},
+                                    Err(e) => update(&weak,"Pairing failed",&e,false),
+                                }
                             }
-                        } else if cmd.is_none() {break;}
+                            None => break,
+                            _ => {} // Ignore input while offline.
+                        }
                     }
                     _ = time::sleep(Duration::from_secs(delay)) => {}
                 }
