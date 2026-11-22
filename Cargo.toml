@@ -1,6 +1,6 @@
 [package]
 name = "remora"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "Native Android remote control for a Raspberry Pi"
 publish = false
@@ -15,6 +15,12 @@ path = "src/main.rs"
 
 [dependencies]
 slint = { version = "1.19", features = ["backend-android-activity-06"] }
+tokio = { version = "1", features = ["rt", "time", "sync", "net"] }
+tokio-tungstenite = { version = "0.28", features = ["rustls-tls-webpki-roots"] }
+futures-util = "0.3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 
 [build-dependencies]
 slint-build = "1.19"
