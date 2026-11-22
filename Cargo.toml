@@ -28,6 +28,8 @@ slint-build = "1.19"
 [package.metadata.android]
 package = "dev.glawks.remora"
 apk_name = "Remora"
+# Keep debug builds small enough for direct sideloading.
+strip = "strip"
 build_targets = ["aarch64-linux-android"]
 
 [package.metadata.android.sdk]
@@ -40,6 +42,8 @@ name = "android.permission.INTERNET"
 [package.metadata.android.application]
 label = "Remora"
 uses_cleartext_traffic = true
+# The native library is loaded by Android after extraction.
+extract_native_libs = true
 
 [[package.metadata.android.application.activity]]
 name = "android.app.NativeActivity"
