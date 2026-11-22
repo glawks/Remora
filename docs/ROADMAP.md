@@ -6,11 +6,12 @@
 - [x] Four navigable starter screens.
 - [x] Touch event and Android keyboard input test controls.
 - [x] GitHub Actions test APK workflow on `dev`.
-- [ ] Confirm a successful GitHub Actions build and launch on a physical phone.
+- [x] Confirm a successful GitHub Actions ARM64 build and artifact upload.
+- [ ] Confirm the app launches correctly on a physical phone.
 
 ## Milestone 2 — Connect to the existing Pi control server
 
-- [ ] Obtain/inspect the current Pi server implementation and documented port/protocol.
+- [x] Inspect Pi Remote v0.3.0 source and map the existing pairing, API and WebSocket protocol (see [PI_PROTOCOL.md](PI_PROTOCOL.md)).
 - [ ] Keep the existing browser client and Wayland/uinput implementation untouched.
 - [ ] Design a reusable Rust transport with error handling and authentication.
 - [ ] Persist known host/pairing information securely on Android.
