@@ -228,6 +228,12 @@ async fn network_worker(
         Err(_) => { update(&weak,"Error","Cannot start network client",false); return; }
     };
     let mut session = load_session(storage.as_deref());
+    if let Some(previous) = &session {
+        // Show the actual remembered Pi address rather than the default.
+        let display_host = previous.base_url.trim_start_matches("http://")
+            .trim_start_matches("https://").to_owned();
+        let _ = weak.upgrade_in_event_loop(move |ui| ui.set_pi_host(display_host.into()));
+    }
     let mut delay = 1u64;
     'outer: loop {
         ready.store(false, Ordering::SeqCst);
