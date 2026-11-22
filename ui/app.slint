@@ -1,10 +1,40 @@
 import { Button, LineEdit } from "std-widgets.slint";
 
+// Touch-friendly tabs with no intrinsic minimum width, so four tabs fit
+// narrow Android viewports without pushing content off-screen.
+component NavTab inherits Rectangle {
+    in property <string> label;
+    in property <bool> selected;
+    callback tapped();
+    min-width: 0px;
+    preferred-width: 60px;
+    horizontal-stretch: 1;
+    height: 44px;
+    border-radius: 9px;
+    background: selected ? #2b496b : #192636;
+    Text {
+        width: parent.width;
+        height: parent.height;
+        text: root.label;
+        color: selected ? #ffffff : #c2d1e5;
+        font-size: 14px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+        clicked => { root.tapped(); }
+    }
+}
+
 export component MainWindow inherits Window {
     title: "Remora";
     background: #0d1422;
-    width: 390px;
-    height: 780px;
+    // A preferred size for desktop preview, not a fixed mobile viewport.
+    preferred-width: 350px;
+    preferred-height: 760px;
+    min-width: 0px;
 
     in-out property <int> active-page: 0;
     in-out property <string> pi-host: "steamlink.local:3100";
@@ -28,11 +58,17 @@ export component MainWindow inherits Window {
     callback launch-moonlight();
 
     VerticalLayout {
-        padding: 14px;
-        spacing: 10px;
+        // Android 15+ can draw behind the status/navigation bars. Keep all
+        // interactive controls inside Slint's current platform safe area.
+        x: root.safe-area-insets.left;
+        y: root.safe-area-insets.top;
+        width: root.width - root.safe-area-insets.left - root.safe-area-insets.right;
+        height: root.height - root.safe-area-insets.top - root.safe-area-insets.bottom;
+        padding: 12px;
+        spacing: 9px;
 
         Rectangle {
-            height: 116px;
+            height: 108px;
             background: #15243b;
             border-radius: 16px;
             VerticalLayout {
@@ -55,11 +91,12 @@ export component MainWindow inherits Window {
         }
 
         HorizontalLayout {
-            spacing: 4px;
-            Button { text: "Pad"; clicked => { root.active-page = 0; } }
-            Button { text: "Keys"; clicked => { root.active-page = 1; } }
-            Button { text: "Apps"; clicked => { root.active-page = 2; } }
-            Button { text: "Setup"; clicked => { root.active-page = 3; } }
+            min-width: 0px;
+            spacing: 5px;
+            NavTab { label: "Pad"; selected: root.active-page == 0; tapped => { root.active-page = 0; } }
+            NavTab { label: "Keys"; selected: root.active-page == 1; tapped => { root.active-page = 1; } }
+            NavTab { label: "Apps"; selected: root.active-page == 2; tapped => { root.active-page = 2; } }
+            NavTab { label: "Setup"; selected: root.active-page == 3; tapped => { root.active-page = 3; } }
         }
 
         if root.active-page == 0: Rectangle {
@@ -228,12 +265,12 @@ export component MainWindow inherits Window {
             VerticalLayout {
                 padding: 14px; spacing: 12px;
                 Text { text: "CONNECT TO YOUR PI"; color: #e4efff; font-size: 17px; font-weight: 700; }
-                Text { text: "Local hostname or private LAN address"; color: #aec1db; font-size: 13px; }
+                Text { text: "Local hostname or private LAN address"; color: #aec1db; font-size: 13px; wrap: word-wrap; }
                 LineEdit {
                     text <=> root.pi-host;
                     placeholder-text: "steamlink.local:3100";
                 }
-                Text { text: "One-time eight-digit code from the Pi"; color: #aec1db; font-size: 13px; }
+                Text { text: "One-time eight-digit code from the Pi"; color: #aec1db; font-size: 13px; wrap: word-wrap; }
                 LineEdit {
                     text <=> root.pairing-code;
                     placeholder-text: "12345678";
