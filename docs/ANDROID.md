@@ -10,17 +10,17 @@ Because the debug certificate is recreated on each ephemeral CI runner, a newer 
 
 ## Local Android build
 
-Install Rust stable, Android SDK and NDK, Java/JDK, and `cargo-apk2`:
+Install Rust stable, Android SDK and **NDK r30** (required by Slint 1.19 / Skia 0.157), Java/JDK, and `cargo-apk2`:
 
 ```bash
 rustup target add aarch64-linux-android
 cargo install cargo-apk2 --locked
 export ANDROID_HOME="$HOME/Android/Sdk"
-export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/27.2.12479018"
+export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/30.0.16248370"
 cargo apk2 build --target aarch64-linux-android --lib
 ```
 
-The APK appears under `target/debug/apk/`. To install and start it via USB debugging:
+The APK appears under `target/debug/apk/`. Use the **signed `Remora.apk`**, not `Remora-unaligned.apk`. See [troubleshooting](TROUBLESHOOTING.md) if Android installs the app but it immediately closes. To install and start it via USB debugging:
 
 ```bash
 cargo apk2 run --target aarch64-linux-android --lib
@@ -34,4 +34,5 @@ For a desktop preview, run `cargo run --bin remora-desktop`. This does not test 
 - Android target: `aarch64-linux-android`
 - Min SDK: 26; target SDK: 35
 - UI: Slint, Android NativeActivity
-- Network permissions are declared in anticipation of the Pi transport; network functionality is not yet implemented.
+- Initial pairing, reconnect, touchpad and keyboard WebSocket controls are implemented on `dev`; real-device testing is still required.
+- App-private paired credentials are not yet Android Keystore-encrypted. Never expose the Pi server's HTTP port to the internet.
