@@ -23,7 +23,7 @@
 - [ ] Keyboard input and shortcut keys.
 - [ ] Clipboard sync with explicit permission/privacy decisions.
 - [ ] Moonlight controls and configurable Pi application launcher.
-- [ ] DNS-SD/mDNS discovery or `streamlink.local` fallback.
+- [ ] DNS-SD/mDNS discovery or `steamlink.local` fallback.
 
 ## Milestone 4 — Release readiness
 
@@ -35,4 +35,4 @@
 
 ## Important
 
-The starter app **does not connect to the Pi**. No touch, text or button events are transmitted. The Pi service must be examined before implementing its protocol; do not guess its routes, commands or pairing tokens.
+The starter app **does not connect to the Pi**. No touch, text or button events are transmitted. The Pi Remote v0.3.0 protocol is documented in [PI_PROTOCOL.md](PI_PROTOCOL.md). Keep compatibility with the [Remora Pi server](https://github.com/glawks/Remora-pi); never invent routes, commands or pairing tokens.
