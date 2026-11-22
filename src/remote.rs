@@ -1,7 +1,7 @@
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use slint::Weak;
+use slint::{ComponentHandle, Weak};
 use std::{fs, io::Write, net::IpAddr, path::{Path, PathBuf}, sync::{Arc, atomic::{AtomicBool, Ordering}}, time::{Duration, Instant}};
 use tokio::{sync::mpsc, time};
 use tokio_tungstenite::{connect_async, tungstenite::{client::IntoClientRequest, http::HeaderValue, Message}};
