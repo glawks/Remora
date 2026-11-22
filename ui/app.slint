@@ -1,0 +1,313 @@
+import { Button, LineEdit } from "std-widgets.slint";
+
+// Touch-friendly tabs with no intrinsic minimum width, so four tabs fit
+// narrow Android viewports without pushing content off-screen.
+component NavTab inherits Rectangle {
+    in property <string> label;
+    in property <bool> selected;
+    callback tapped();
+    min-width: 0px;
+    preferred-width: 60px;
+    horizontal-stretch: 1;
+    height: 44px;
+    border-radius: 9px;
+    background: selected ? #2b496b : #192636;
+    Text {
+        width: parent.width;
+        height: parent.height;
+        text: root.label;
+        color: root.selected ? #ffffff : #c2d1e5;
+        font-size: 14px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+        clicked => { root.tapped(); }
+    }
+}
+
+export component MainWindow inherits Window {
+    title: "Remora";
+    background: #0d1422;
+    // A preferred size for desktop preview, not a fixed mobile viewport.
+    preferred-width: 350px;
+    preferred-height: 760px;
+    min-width: 0px;
+
+    in-out property <int> active-page: 0;
+    in-out property <string> pi-host: "steamlink.local:3100";
+    in-out property <string> pairing-code: "";
+    in-out property <string> typed-text: "";
+    in-out property <string> connection-state: "Starting";
+    in-out property <string> status-detail: "Checking saved pairing…";
+    in-out property <bool> is-connected: false;
+    in-out property <bool> drag-active: false;
+
+    callback pair-request(string, string);
+    callback reconnect-request();
+    callback forget-request();
+    callback pointer-move(float, float);
+    callback remote-click(string);
+    callback remote-scroll(int);
+    callback remote-drag(bool);
+    callback send-key(string);
+    callback send-text(string);
+    callback clipboard-paste(string);
+    callback launch-moonlight();
+
+    VerticalLayout {
+        // Android 15+ can draw behind the status/navigation bars. Keep all
+        // interactive controls inside Slint's current platform safe area.
+        x: root.safe-area-insets.left;
+        y: root.safe-area-insets.top;
+        width: root.width - root.safe-area-insets.left - root.safe-area-insets.right;
+        height: root.height - root.safe-area-insets.top - root.safe-area-insets.bottom;
+        padding: 12px;
+        spacing: 9px;
+
+        Rectangle {
+            height: 108px;
+            background: #15243b;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 4px;
+                Text { text: "REMORA"; color: #edf5ff; font-size: 27px; font-weight: 800; }
+                Text {
+                    text: root.connection-state;
+                    color: root.is-connected ? #70e1b0 : #f2c978;
+                    font-size: 16px;
+                    font-weight: 700;
+                }
+                Text {
+                    text: root.status-detail;
+                    color: #adc0dd;
+                    font-size: 12px;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            min-width: 0px;
+            spacing: 5px;
+            NavTab { label: "Pad"; selected: root.active-page == 0; tapped => { root.active-page = 0; } }
+            NavTab { label: "Keys"; selected: root.active-page == 1; tapped => { root.active-page = 1; } }
+            NavTab { label: "Apps"; selected: root.active-page == 2; tapped => { root.active-page = 2; } }
+            NavTab { label: "Setup"; selected: root.active-page == 3; tapped => { root.active-page = 3; } }
+        }
+
+        if root.active-page == 0: Rectangle {
+            vertical-stretch: 1;
+            background: #172640;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 12px;
+                spacing: 10px;
+                Text {
+                    text: "TOUCHPAD";
+                    color: #e4efff; font-weight: 700; font-size: 17px;
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                    background: root.is-connected ? #0a2234 : #0c1729;
+                    border-radius: 14px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: root.is-connected ? "Swipe to move   •   Tap to click" : "Connect in Setup to use the touchpad";
+                        color: #9db6d3; font-size: 15px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        wrap: word-wrap;
+                    }
+                    TouchArea {
+                        width: parent.width; height: parent.height;
+                        enabled: root.is-connected;
+                        property <length> last-x: 0px;
+                        property <length> last-y: 0px;
+                        property <bool> moved-enough: false;
+                        pointer-event(event) => {
+                            if (event.kind == PointerEventKind.down) {
+                                self.last-x = self.mouse-x;
+                                self.last-y = self.mouse-y;
+                                self.moved-enough = false;
+                            }
+                        }
+                        moved => {
+                            let dx = (self.mouse-x - self.last-x) / 1px;
+                            let dy = (self.mouse-y - self.last-y) / 1px;
+                            let travel-x = (self.mouse-x - self.pressed-x) / 1px;
+                            let travel-y = (self.mouse-y - self.pressed-y) / 1px;
+                            if (travel-x * travel-x + travel-y * travel-y > 144) { self.moved-enough = true; }
+                            self.last-x = self.mouse-x;
+                            self.last-y = self.mouse-y;
+                            root.pointer-move(dx, dy);
+                        }
+                        clicked => {
+                            if (!self.moved-enough) { root.remote-click("left"); }
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 7px;
+                    Button { text: "Left click"; enabled: root.is-connected; clicked => { root.remote-click("left"); } }
+                    Button { text: "Right click"; enabled: root.is-connected; clicked => { root.remote-click("right"); } }
+                }
+
+                HorizontalLayout {
+                    spacing: 7px;
+                    Button { text: "Scroll up"; enabled: root.is-connected; clicked => { root.remote-scroll(3); } }
+                    Button { text: "Scroll down"; enabled: root.is-connected; clicked => { root.remote-scroll(-3); } }
+                }
+
+                Button {
+                    enabled: root.is-connected;
+                    text: root.drag-active ? "Release drag" : "Hold left mouse button (drag)";
+                    clicked => {
+                        root.drag-active = !root.drag-active;
+                        root.remote-drag(root.drag-active);
+                    }
+                }
+                Text {
+                    text: "Single-finger touch and tap work in this build. Two-finger scrolling is planned.";
+                    color: #98afce; font-size: 12px; wrap: word-wrap;
+                }
+            }
+        }
+
+        if root.active-page == 1: Rectangle {
+            vertical-stretch: 1;
+            background: #172640;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 14px; spacing: 12px;
+                Text { text: "KEYBOARD"; color: #e4efff; font-size: 17px; font-weight: 700; }
+                Text {
+                    text: "Use the Android keyboard, then tap Send. Basic key commands below.";
+                    color: #aec1db; font-size: 13px; wrap: word-wrap;
+                }
+                LineEdit {
+                    text <=> root.typed-text;
+                    placeholder-text: "Type for the Raspberry Pi…";
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    Button {
+                        enabled: root.is-connected && root.typed-text != "";
+                        text: "Send ASCII";
+                        clicked => { root.send-text(root.typed-text); }
+                    }
+                    Button {
+                        enabled: root.is-connected && root.typed-text != "";
+                        text: "Paste (Unicode)";
+                        clicked => { root.clipboard-paste(root.typed-text); }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    Button { text: "Enter"; enabled: root.is-connected; clicked => root.send-key("enter"); }
+                    Button { text: "Backspace"; enabled: root.is-connected; clicked => root.send-key("backspace"); }
+                    Button { text: "Escape"; enabled: root.is-connected; clicked => root.send-key("escape"); }
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    Button { text: "Up"; enabled: root.is-connected; clicked => root.send-key("up"); }
+                    Button { text: "Down"; enabled: root.is-connected; clicked => root.send-key("down"); }
+                    Button { text: "Left"; enabled: root.is-connected; clicked => root.send-key("left"); }
+                    Button { text: "Right"; enabled: root.is-connected; clicked => root.send-key("right"); }
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    Button { text: "Tab"; enabled: root.is-connected; clicked => root.send-key("tab"); }
+                    Button { text: "Space"; enabled: root.is-connected; clicked => root.send-key("space"); }
+                    Button { text: "F11"; enabled: root.is-connected; clicked => root.send-key("f11"); }
+                }
+                Rectangle { vertical-stretch: 1; background: transparent; }
+                Text {
+                    text: "Text is sent only when you tap Send or Paste.";
+                    color: #98afce; font-size: 12px; wrap: word-wrap;
+                }
+            }
+        }
+
+        if root.active-page == 2: Rectangle {
+            vertical-stretch: 1;
+            background: #172640;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 14px; spacing: 12px;
+                Text { text: "APPLICATIONS"; color: #e4efff; font-size: 17px; font-weight: 700; }
+                Text {
+                    text: "Launch Moonlight using the existing Pi server's approved application ID.";
+                    color: #aec1db; font-size: 14px; wrap: word-wrap;
+                }
+                Button {
+                    text: "Launch Moonlight on Pi";
+                    enabled: root.is-connected;
+                    clicked => { root.launch-moonlight(); }
+                }
+                Text {
+                    text: "Installed application discovery and favourites will follow.";
+                    color: #98afce; font-size: 12px; wrap: word-wrap;
+                }
+                Rectangle { vertical-stretch: 1; background: transparent; }
+            }
+        }
+
+        if root.active-page == 3: Rectangle {
+            vertical-stretch: 1;
+            background: #172640;
+            border-radius: 16px;
+            VerticalLayout {
+                padding: 14px; spacing: 12px;
+                Text { text: "CONNECT TO YOUR PI"; color: #e4efff; font-size: 17px; font-weight: 700; }
+                Text { text: "Local hostname or private LAN address"; color: #aec1db; font-size: 13px; wrap: word-wrap; }
+                LineEdit {
+                    text <=> root.pi-host;
+                    placeholder-text: "steamlink.local:3100";
+                }
+                Text { text: "One-time eight-digit code from the Pi"; color: #aec1db; font-size: 13px; wrap: word-wrap; }
+                LineEdit {
+                    text <=> root.pairing-code;
+                    placeholder-text: "12345678";
+                }
+                Button {
+                    text: "Pair this Android device";
+                    clicked => { root.pair-request(root.pi-host, root.pairing-code); }
+                }
+                Button {
+                    text: "Reconnect to saved Pi";
+                    clicked => { root.reconnect-request(); }
+                }
+                Button {
+                    text: "Forget saved pairing";
+                    clicked => { root.forget-request(); }
+                }
+                Text {
+                    text: "On the Pi, run: python3 ~/.local/share/pi-remote/server.py pair";
+                    color: #9bb3d2; font-size: 12px; wrap: word-wrap;
+                }
+                Text {
+                    text: "Use only a trusted Wi-Fi/LAN. Initial credentials are saved in Android's private app storage; Keystore encryption is planned.";
+                    color: #9bb3d2; font-size: 12px; wrap: word-wrap;
+                }
+                Rectangle { vertical-stretch: 1; background: transparent; }
+            }
+        }
+
+        Rectangle {
+            height: 24px;
+            background: #0d1422;
+            Text {
+                text: "Remora 0.2.0-dev  •  Native Android";
+                color: #738ba9; font-size: 12px;
+                width: parent.width; height: parent.height;
+                horizontal-alignment: center; vertical-alignment: center;
+            }
+        }
+    }
+}
