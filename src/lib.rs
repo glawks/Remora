@@ -20,9 +20,31 @@ pub fn main() {
 #[cfg(target_os = "android")]
 #[unsafe(no_mangle)]
 pub fn android_main(android_app: slint::android::AndroidApp) {
-    // Android's internal data path is app-private. Never write pairing tokens
-    // to external/shared storage.
+    // Capture early startup failures so they can be diagnosed via ADB logcat.
+    // Do not log pairing tokens, typed text, or the contents of network messages.
+    android_logger::init_once(
+        android_logger::Config::default()
+            .with_max_level(log::LevelFilter::Info)
+            .with_tag("Remora"),
+    );
+    std::panic::set_hook(Box::new(|panic| {
+        log::error!("Native panic: {panic}");
+    }));
+    log::info!("Entering Remora native activity");
+
+    // Android's internal data path is app-private.
     let storage = android_app.internal_data_path().map(|p| p.join("remora-session.json"));
-    slint::android::init(android_app).expect("Unable to initialise Slint on Android");
-    run_ui(storage).expect("Remora UI failed");
+    log::info!("App data path initialised");
+
+    if let Err(error) = slint::android::init(android_app) {
+        log::error!("Slint backend failed to initialise: {error}");
+        return;
+    }
+    log::info!("Slint backend initialised");
+
+    if let Err(error) = run_ui(storage) {
+        log::error!("Remora UI failed: {error}");
+    } else {
+        log::info!("Remora UI event loop ended");
+    }
 }
