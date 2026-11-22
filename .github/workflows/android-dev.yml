@@ -23,6 +23,8 @@ jobs:
           targets: aarch64-linux-android
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: android-ndk-r30-slint-119
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
@@ -30,15 +32,17 @@ jobs:
       - name: Install Android SDK/NDK
         run: |
           sdkmanager --version
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018"
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "ndk;30.0.16248370"
 
       - name: Install cargo-apk2
         run: cargo install cargo-apk2 --locked
 
       - name: Build Android ARM64 test APK
         run: |
-          export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/27.2.12479018"
+          export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/30.0.16248370"
           export ANDROID_NDK_HOME="$ANDROID_NDK_ROOT"
+          echo "Using Android NDK: $ANDROID_NDK_ROOT"
+          grep -E "Pkg.Revision" "$ANDROID_NDK_ROOT/source.properties"
           cargo apk2 build --target aarch64-linux-android --lib
 
       - name: Validate installable APK
