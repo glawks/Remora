@@ -2,7 +2,7 @@
 
 A native Android remote-control client for Raspberry Pi/Linux, built with **Rust** and **Slint**.
 
-The planned app provides touchpad, keyboard, clipboard, application launching, and Moonlight-friendly controls. It will reuse the existing Pi/Wayland service rather than replacing it.
+The planned app provides touchpad, keyboard, clipboard, application launching, and Moonlight-friendly controls. It will reuse the existing Pi/Wayland service rather than replacing it. The Pi backend is maintained separately in [glawks/Remora-pi](https://github.com/glawks/Remora-pi).
 
 ## Current status — 0.1.0-dev
 
@@ -16,7 +16,7 @@ This branch contains the **UI-only Android prototype**. It shows four navigable 
 - Build instructions: [docs/ANDROID.md](./docs/ANDROID.md).
 - Milestones and unfinished work: [docs/ROADMAP.md](./docs/ROADMAP.md).
 
-The Pi-side protocol, authentication and reconnection requirements must be inspected before wiring the controls. The current web app should remain available as a fallback.
+The Pi-side v0.3.0 protocol has been inspected and documented in [docs/PI_PROTOCOL.md](docs/PI_PROTOCOL.md). The native transport is not yet implemented. The current web app should remain available as a fallback.
 
 ## License
 
