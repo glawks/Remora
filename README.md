@@ -1,23 +1,35 @@
 # Remora
 
-A native Android remote-control client for Raspberry Pi/Linux, built with **Rust** and **Slint**.
+**Remora** is a native Android remote-control app for Raspberry Pi and Linux, built with **Rust** and **Slint**. Its server is [Remora-pi](https://github.com/glawks/Remora-pi).
 
-The planned app provides touchpad, keyboard, clipboard, application launching, and Moonlight-friendly controls. It will reuse the existing Pi/Wayland service rather than replacing it. The Pi backend is maintained separately in [glawks/Remora-pi](https://github.com/glawks/Remora-pi).
+## Development status: 0.2.0-dev
 
-## Current status — 0.1.0-dev
+The `dev` branch contains the first remote-control implementation:
 
-This branch contains the **UI-only Android prototype**. It shows four navigable screens and checks that Android touch and keyboard input reach the UI. **It does not connect to the Pi or send control commands yet.**
+- Pair to Remora-pi using a one-time eight-digit code.
+- Save the paired Pi in Android private storage and reconnect automatically.
+- Authenticate through the server's existing WebSocket with the required Origin header.
+- Swipe to move, tap to left-click, use left/right click and scroll buttons, and hold/release drag.
+- Use Android keyboard input to send ASCII or paste Unicode through the Pi clipboard.
+- Send navigation keys and launch the server-approved Moonlight application.
 
-## Development and builds
+**Phone testing and a green Android build for this change are still required.** The implementation does not yet include multi-touch gestures, QR scanning, full app catalogue, or Keystore-encrypted token storage.
 
-- `main`: stable releases (none yet).
-- `dev`: source and test APKs; pushes trigger the [Android ARM64 workflow](./.github/workflows/android-dev.yml).
-- Test APK: GitHub **Actions → Android ARM64 - dev APK → latest successful run → Artifacts → remora-arm64-dev**.
-- Build instructions: [docs/ANDROID.md](./docs/ANDROID.md).
-- Milestones and unfinished work: [docs/ROADMAP.md](./docs/ROADMAP.md).
+The existing Pi Python server and web controller remain unchanged. Connect only on a trusted network; the existing LAN HTTP protocol is not encrypted.
 
-The Pi-side v0.3.0 protocol has been inspected and documented in [docs/PI_PROTOCOL.md](docs/PI_PROTOCOL.md). The native transport is not yet implemented. The current web app should remain available as a fallback.
+## Branches
+
+- `main` — reserved for stable releases.
+- [`dev`](../../tree/dev) — active Android development and test APKs.
+
+## Get an Android test APK
+
+Go to [GitHub Actions](../../actions/workflows/android-dev.yml). After a successful `dev` run, download and extract the `remora-arm64-dev` artifact and install the APK.
+
+If no run starts automatically after the update, click **Run workflow** and select the `dev` branch. **Do not install an older 0.1.0 APK expecting these new controls.**
+
+See [docs/CONTROL.md](docs/CONTROL.md) for pairing and testing, [docs/ANDROID.md](docs/ANDROID.md) for build instructions, and [docs/PI_PROTOCOL.md](docs/PI_PROTOCOL.md) for the exact Pi API.
 
 ## License
 
-Not selected yet. Decide on an open-source license before public source distribution or contributions.
+To be selected before a stable release.
